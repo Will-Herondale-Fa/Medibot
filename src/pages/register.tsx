@@ -13,9 +13,11 @@ interface FormErrors {
   general?: string;
 }
 
+type UserRole = 'patient' | 'doctor';
+
 export default function Register() {
   const router = useRouter();
-  const [role, setRole] = useState<'patient' | 'doctor'>('patient');
+  const [role, setRole] = useState<UserRole>('patient');
   const [formData, setFormData] = useState({
     phone: '',
     email: '',
@@ -83,7 +85,7 @@ export default function Register() {
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRole(e.target.value as 'patient' | 'doctor');
+    setRole(e.target.value as UserRole);
     setErrors({});
   };
 
