@@ -6,7 +6,7 @@ import crypto from 'crypto';
 const DB_FILE = join(process.cwd(), 'data', 'db.json');
 
 type Role = 'patient' | 'doctor';
-export type User = { id: string; role: Role; phone: string; name?: string; nmc?: string; token?: string };
+export type User = { id: string; role: Role; phone: string; email: string; password?: string; name?: string; nmc?: string; token?: string; createdAt?: string };
 export type Call = { id: string; hostId: string; patientIds: string[]; url: string; room?: string; createdAt: string };
 export type Prescription = { id: string; doctorId: string; patientId: string; text: string; createdAt: string };
 export type NotificationItem = { id: string; fromId: string; toId: string; message: string; callId?: string; createdAt: string };
@@ -30,11 +30,11 @@ function write(state: DB) {
 
 function genId() { return Date.now().toString(36) + '-' + crypto.randomBytes(3).toString('hex'); }
 
-export function createOrGetUser({ phone, role, name, nmc }: { phone: string; role: Role; name?: string; nmc?: string }) {
+export function createOrGetUser({ phone, role, name, nmc, email, password }: { phone: string; role: Role; name?: string; nmc?: string; email?: string; password?: string }) {
   const db = read();
   let user = db.users.find(u => u.phone === phone && u.role === role);
   if (!user) {
-    user = { id: genId(), phone, role, name, nmc };
+    user = { id: genId(), phone, role, name, nmc, email: email || '', password, createdAt: new Date().toISOString() };
     db.users.push(user);
     write(db);
   }
@@ -120,4 +120,10 @@ export function findUserByNmc(nmc?: string) {
   if (!nmc) return null;
   const db = read();
   return db.users.find(u => u.nmc === nmc) || null;
+}
+
+export function findUserByEmail(email?: string) {
+  if (!email) return null;
+  const db = read();
+  return db.users.find(u => u.email === email) || null;
 }
