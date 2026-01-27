@@ -193,9 +193,8 @@ export default function Register() {
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </button>
+                aria-label="Toggle password visibility"
+              />
             </div>
             {errors.password && <span className="error-text">{errors.password}</span>}
           </div>
