@@ -17,7 +17,7 @@ type UserRole = 'patient' | 'doctor';
 
 export default function Register() {
   const router = useRouter();
-  const [role, setRole] = useState<UserRole>('patient');
+  const [role, setRole] = useState('patient' as UserRole);
   const [formData, setFormData] = useState({
     phone: '',
     email: '',
@@ -26,7 +26,7 @@ export default function Register() {
     name: '',
     nmc: '',
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState({} as FormErrors);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
