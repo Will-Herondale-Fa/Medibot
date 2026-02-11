@@ -62,6 +62,11 @@ export function listPatients() {
   return db.users.filter(u => u.role === 'patient');
 }
 
+export function listDoctors() {
+  const db = read();
+  return db.users.filter(u => u.role === 'doctor').map(({ password, token, ...rest }) => rest);
+}
+
 export function createCall(hostId: string, patientIds: string[], url: string, room?: string) {
   const db = read();
   const call: Call = { id: genId(), hostId, patientIds, url, room, createdAt: new Date().toISOString() };

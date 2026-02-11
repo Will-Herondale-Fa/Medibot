@@ -355,6 +355,11 @@ input.error:focus, textarea.error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0
 /* =================== Call Page =================== */
 .call-page { display: flex; flex-direction: column; height: calc(100vh - 60px); }
 
+.call-request-row {
+  display: flex; gap: 12px; align-items: center;
+}
+.call-request-row select { flex: 1; }
+
 .call-toolbar {
   display: flex; justify-content: space-between; align-items: center;
   padding: 12px 24px; background: #fff; border-bottom: 1px solid var(--gray-200);

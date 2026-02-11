@@ -8,6 +8,9 @@ export default function PatientDashboard() {
   const [calls, setCalls] = useState([] as any[]);
   const [prescriptions, setPrescriptions] = useState([] as any[]);
   const [vitals, setVitals] = useState(null as any);
+  const [doctors, setDoctors] = useState([] as any[]);
+  const [selectedDoctor, setSelectedDoctor] = useState('');
+  const [requesting, setRequesting] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -24,10 +27,12 @@ export default function PatientDashboard() {
       fetch('/api/calls', { credentials: 'include' }).then(r => r.json()),
       fetch('/api/prescriptions?patientId=' + user.id).then(r => r.json()),
       fetch('/api/patient/vitals', { credentials: 'include' }).then(r => r.json()),
-    ]).then(([c, p, v]) => {
+      fetch('/api/users?role=doctor').then(r => r.json()),
+    ]).then(([c, p, v, d]) => {
       setCalls(c);
       setPrescriptions(p);
       setVitals(v);
+      setDoctors(d);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user]);
@@ -52,6 +57,35 @@ export default function PatientDashboard() {
     }
   }
 
+  async function requestCall() {
+    if (!selectedDoctor) return;
+    setRequesting(true);
+    try {
+      const res = await fetch('/api/calls', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hostId: selectedDoctor, patientIds: [user.id] }),
+      });
+      const call = await res.json();
+      setCalls((prev: any[]) => [call, ...prev.filter((c: any) => c.id !== call.id)]);
+
+      const doc = doctors.find((d: any) => d.id === selectedDoctor);
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ to: selectedDoctor, message: (user.name || user.phone) + ' requested a call', callId: call.id }),
+      });
+      setSelectedDoctor('');
+      router.push('/call/' + call.id);
+    } catch {
+      alert('Failed to start call');
+    } finally {
+      setRequesting(false);
+    }
+  }
+
   if (loading) return (
     <div className="loading-screen">
       <div className="loading-spinner" />
@@ -67,6 +101,25 @@ export default function PatientDashboard() {
           <p className="dashboard-subtitle">Welcome back, {user?.name || user?.phone}</p>
         </div>
       </div>
+
+      <section className="dashboard-section" style={{ marginBottom: 24 }}>
+        <h3 className="section-title">Start a Call</h3>
+        {doctors.length === 0 ? (
+          <div className="empty-state"><p>No doctors available yet</p></div>
+        ) : (
+          <div className="call-request-row">
+            <select value={selectedDoctor} onChange={(e: any) => setSelectedDoctor(e.target.value)}>
+              <option value="">Select a doctor...</option>
+              {doctors.map((d: any) => (
+                <option key={d.id} value={d.id}>Dr. {d.name || d.phone}</option>
+              ))}
+            </select>
+            <button className="btn" onClick={requestCall} disabled={!selectedDoctor || requesting}>
+              {requesting ? 'Connecting...' : 'Start Call'}
+            </button>
+          </div>
+        )}
+      </section>
 
       {vitals && (
         <section className="dashboard-section">
