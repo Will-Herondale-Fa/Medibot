@@ -11,8 +11,26 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null as any);
   const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState('' as string);
 
   useEffect(() => { setRole(roleQuery === 'doctor' ? 'doctor' : 'patient'); }, [roleQuery]);
+
+  async function testLogin(testRole: string) {
+    setTestLoading(testRole);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ intent: 'test-login', role: testRole, phone: '0000000000' }),
+      });
+      if (!res.ok) { setError('Test login failed'); return; }
+      const user = await res.json();
+      router.push(user.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard');
+    } catch { setError('Test login failed'); }
+    finally { setTestLoading(''); }
+  }
 
   async function submit(e: any) {
     e.preventDefault();
@@ -103,6 +121,18 @@ export default function Login() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <div className="test-login-divider">
+          <span>or try a demo account</span>
+        </div>
+        <div className="test-login-buttons">
+          <button type="button" className="btn btn-test" onClick={() => testLogin('doctor')} disabled={!!testLoading}>
+            {testLoading === 'doctor' ? 'Logging in...' : 'Test as Doctor'}
+          </button>
+          <button type="button" className="btn btn-test" onClick={() => testLogin('patient')} disabled={!!testLoading}>
+            {testLoading === 'patient' ? 'Logging in...' : 'Test as Patient'}
+          </button>
+        </div>
 
         <div className="auth-footer">
           <p>Don't have an account? <Link href="/register">Create one</Link></p>

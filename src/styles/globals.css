@@ -235,6 +235,26 @@ input.error:focus, textarea.error:focus { box-shadow: 0 0 0 3px rgba(239,68,68,0
 .auth-footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
 .auth-footer a:hover { text-decoration: underline; }
 
+/* Test Login */
+.test-login-divider {
+  text-align: center; margin: 24px 0 16px; position: relative;
+}
+.test-login-divider::before {
+  content: ''; position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background: var(--gray-200);
+}
+.test-login-divider span {
+  background: #fff; padding: 0 12px; position: relative;
+  font-size: 13px; color: var(--gray-400); font-weight: 500;
+}
+.test-login-buttons { display: flex; gap: 12px; margin-bottom: 8px; }
+.btn-test {
+  flex: 1; background: var(--gray-100); color: var(--gray-700);
+  border: 1px solid var(--gray-300); padding: 10px 14px; font-size: 13px;
+  box-shadow: none;
+}
+.btn-test:hover { background: var(--gray-200); box-shadow: none; transform: none; }
+
 /* =================== Dashboard =================== */
 .dashboard { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
 

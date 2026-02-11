@@ -52,6 +52,22 @@ export default function handler(req: any, res: any) {
       return res.json(safe);
     }
 
+    // test login — auto-create a demo account and log in
+    if (intent === 'test-login') {
+      const testPhone = role === 'doctor' ? '0000000001' : '0000000002';
+      const testEmail = role === 'doctor' ? 'testdoctor@medibot.test' : 'testpatient@medibot.test';
+      const testName = role === 'doctor' ? 'Test Doctor' : 'Test Patient';
+      let testUser = findUserByPhoneAndRole(testPhone, role);
+      if (!testUser) {
+        testUser = createOrGetUser({ phone: testPhone, role, name: testName, email: testEmail, password: 'test123', nmc: role === 'doctor' ? 'MH0000001' : undefined });
+      }
+      const tk = createSession(testUser.id);
+      res.setHeader('Set-Cookie', `medibot_token=${tk}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+      const s = { ...testUser } as any;
+      delete s.token; delete s.password;
+      return res.json(s);
+    }
+
     // login
     if (!password) {
       return res.status(400).json({ error: 'Password is required' });
