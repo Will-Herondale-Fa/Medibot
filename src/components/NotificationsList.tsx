@@ -19,19 +19,29 @@ export default function NotificationsList() {
     return () => clearInterval(id);
   }, []);
 
-  if (!list.length) return <div>No notifications</div>;
+  if (!list.length) return (
+    <div className="empty-state">
+      <p>No notifications</p>
+    </div>
+  );
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <strong>Notifications</strong>
-        <button className="btn" onClick={fetchList} style={{ padding: '6px 10px' }}>Refresh</button>
+    <div className="notifications-list">
+      <div className="notifications-header">
+        <span className="badge">{list.length}</span>
+        <button className="btn btn-outline-sm" onClick={fetchList}>Refresh</button>
       </div>
-      {list.map((n: any) => (
-        <div key={n.id} className="card">
-          <div className="small">{new Date(n.createdAt).toLocaleString()}</div>
-          <div>{n.message}</div>
-        </div>
-      ))}
+      <div className="card-list">
+        {list.map((n: any) => (
+          <div key={n.id} className="card notification-card">
+            <div className="notification-dot" />
+            <div className="notification-content">
+              <p className="notification-message">{n.message}</p>
+              <span className="small">{new Date(n.createdAt).toLocaleString()}</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

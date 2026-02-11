@@ -9,9 +9,10 @@ export default function CallPage() {
   const [call, setCall] = useState(null as any);
   const [user, setUser] = useState(null as any);
   const [notifying, setNotifying] = useState(false);
+  const [notified, setNotified] = useState(false);
 
   useEffect(() => {
-    fetch('/api/auth', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(setUser).catch(()=>setUser(null));
+    fetch('/api/auth', { credentials: 'include' }).then(r => r.ok ? r.json() : null).then(setUser).catch(() => setUser(null));
   }, []);
 
   useEffect(() => {
@@ -19,66 +20,84 @@ export default function CallPage() {
     fetch(`/api/calls?id=${id}`).then(r => r.ok ? r.json() : null).then(setCall);
   }, [id]);
 
-  if (!id) return <div>Missing id</div>;
-  if (!call) return <div>Loading call...</div>;
+  if (!id) return (
+    <div className="loading-screen"><p>Missing call ID</p></div>
+  );
+  if (!call) return (
+    <div className="loading-screen">
+      <div className="loading-spinner" />
+      <p>Connecting to call...</p>
+    </div>
+  );
 
   async function notifyAll() {
-    if (!user) return alert('Please login');
+    if (!user) return;
     setNotifying(true);
-    const message = `Doctor started a call (${call.id})`;
+    const message = `Dr. ${user.name || user.phone} started a call`;
     try {
       for (const pid of call.patientIds) {
-        const res = await fetch('/api/notifications', {
+        await fetch('/api/notifications', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
           body: JSON.stringify({ to: pid, message, callId: call.id })
         });
-        if (!res.ok) throw new Error('Failed to send');
       }
-      alert('Notified');
-    } catch (err: any) {
-      alert(err?.message || 'Failed to notify');
-    } finally { setNotifying(false); }
+      setNotified(true);
+      setTimeout(() => setNotified(false), 3000);
+    } catch {} finally { setNotifying(false); }
+  }
+
+  async function notifyDoctor() {
+    if (!user) return;
+    setNotifying(true);
+    const message = `Patient ${user.name || user.phone} needs attention`;
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+        body: JSON.stringify({ to: call.hostId, message, callId: call.id })
+      });
+      setNotified(true);
+      setTimeout(() => setNotified(false), 3000);
+    } catch {} finally { setNotifying(false); }
   }
 
   const canNotify = user?.id === call.hostId;
   const isPatient = user?.role === 'patient' && user?.id !== call.hostId;
 
-  async function notifyDoctor() {
-    if (!user) return alert('Please login');
-    setNotifying(true);
-    const message = `Patient ${user.name || user.phone} wants the doctor's attention (call ${call.id})`;
-    try {
-      const res = await fetch('/api/notifications', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-        body: JSON.stringify({ to: call.hostId, message, callId: call.id })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error || 'Failed to notify');
-      }
-      alert('Notified doctor');
-    } catch (err: any) { alert(err?.message || 'Failed to notify'); }
-    finally { setNotifying(false); }
-  }
-
   return (
-    <div>
-      <h2>Call {call.id}</h2>
-      <div>Host: {call.hostId}</div>
-      <div>Participants: {call.patientIds?.join(', ')}</div>
-      <div style={{ marginTop: 12 }}>
+    <div className="call-page">
+      <div className="call-toolbar">
+        <div className="call-info">
+          <span className="call-status-dot active" />
+          <span>Call #{(call.id as string).slice(0, 8)}</span>
+          <span className="small">{call.patientIds.length} participant(s)</span>
+        </div>
+        <div className="call-actions">
+          {canNotify && (
+            <button className="btn btn-sm" onClick={notifyAll} disabled={notifying}>
+              {notifying ? 'Sending...' : 'Notify Patients'}
+            </button>
+          )}
+          {isPatient && (
+            <button className="btn btn-sm" onClick={notifyDoctor} disabled={notifying}>
+              {notifying ? 'Sending...' : 'Notify Doctor'}
+            </button>
+          )}
+          <button className="btn btn-outline-sm" onClick={() => router.push(user?.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard')}>
+            Leave Call
+          </button>
+        </div>
+      </div>
+
+      {notified && <div className="toast">Notification sent successfully</div>}
+
+      <div className="call-video-container">
         <JitsiEmbed room={call.room || call.id} />
       </div>
-      <div style={{ marginTop: 12 }}>
-        {canNotify && <button className="btn" onClick={notifyAll} disabled={notifying}>{notifying ? 'Notifying...' : 'Notify participants'}</button>}
-        {isPatient && <button className="btn" style={{ marginLeft: 8 }} onClick={notifyDoctor} disabled={notifying}>{notifying ? 'Notifying...' : 'Notify doctor'}</button>}
-        <button style={{ marginLeft: 8 }} onClick={() => router.push('/')}>Leave</button>
-      </div>
 
-      <section style={{ marginTop: 20 }}>
-        <h3>Notifications</h3>
+      <div className="call-sidebar">
+        <h3 className="section-title">Notifications</h3>
         <NotificationsList />
-      </section>
+      </div>
     </div>
   );
 }
