@@ -53,9 +53,15 @@ export default function handler(req: any, res: any) {
     }
 
     // login
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
     const user = findUserByPhoneAndRole(phone, role);
     if (!user) {
       return res.status(404).json({ error: 'User not found. Please register first.' });
+    }
+    if (user.password && user.password !== password) {
+      return res.status(401).json({ error: 'Incorrect password' });
     }
     
     const token = createSession(user.id);

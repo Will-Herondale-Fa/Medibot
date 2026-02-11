@@ -74,15 +74,15 @@ export default function PatientDashboard() {
           <div className="vitals-grid">
             <div className="vital-card">
               <span className="vital-label">Temperature</span>
-              <span className="vital-value">{vitals.temperature}&deg;C</span>
+              <span className="vital-value">{vitals.temperature === '-' ? '-' : vitals.temperature + '°C'}</span>
             </div>
             <div className="vital-card">
               <span className="vital-label">Heart Rate</span>
-              <span className="vital-value">{vitals.bpm} <small>bpm</small></span>
+              <span className="vital-value">{vitals.bpm === '-' ? '-' : vitals.bpm + ' bpm'}</span>
             </div>
             <div className="vital-card">
               <span className="vital-label">SpO2</span>
-              <span className="vital-value">{vitals.spo2}%</span>
+              <span className="vital-value">{vitals.spo2 === '-' ? '-' : vitals.spo2 + '%'}</span>
             </div>
             <div className="vital-card">
               <span className="vital-label">Blood Pressure</span>
@@ -90,7 +90,7 @@ export default function PatientDashboard() {
             </div>
             <div className="vital-card">
               <span className="vital-label">Respiratory Rate</span>
-              <span className="vital-value">{vitals.respiratoryRate} <small>/min</small></span>
+              <span className="vital-value">{vitals.respiratoryRate === '-' ? '-' : vitals.respiratoryRate + ' /min'}</span>
             </div>
           </div>
         </section>

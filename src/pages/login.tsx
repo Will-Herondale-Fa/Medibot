@@ -7,6 +7,8 @@ export default function Login() {
   const roleQuery = typeof router.query.role === 'string' ? router.query.role : 'patient';
   const [role, setRole] = useState(roleQuery === 'doctor' ? 'doctor' : 'patient');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null as any);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +23,12 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const body = { intent: 'login', role, phone: phone.replace(/\D/g, '') };
+      if (!password) {
+        setError('Please enter your password');
+        setLoading(false);
+        return;
+      }
+      const body = { intent: 'login', role, phone: phone.replace(/\D/g, ''), password };
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,6 +80,23 @@ export default function Login() {
               onChange={(e: any) => { setPhone(e.target.value); setError(null); }}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e: any) => { setPassword(e.target.value); setError(null); }}
+                required
+              />
+              <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password">
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
